@@ -1,0 +1,65 @@
+{
+    // Use IntelliSense to learn about possible Node.js debug attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${file}",
+            "cwd": "${workspaceRoot}",
+            "sourceMaps": true,
+            "preLaunchTask": "build",
+            "outFiles": [
+                "${workspaceRoot}/build/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Export User",
+            "program": "${workspaceRoot}/src/cli.ts",
+            "args": [
+                "export-users",
+                "--user-pool-id",
+                "eu-central-1_Bkqoor6RC",
+                "--format",
+                "csv"
+            ],
+            "cwd": "${workspaceRoot}",
+            "sourceMaps": true,
+            "preLaunchTask": "build",
+            "outFiles": [
+                "${workspaceRoot}/build/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Jest",
+            "program": "${workspaceRoot}/jest",
+            "args": [
+                "-i",
+                // "${file}"
+                "${workspaceRoot}/build/${relativeFile}"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std",
+            // "console": "integratedTerminal",
+            "preLaunchTask": "build",
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/build/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Process",
+            "port": 5858,
+            "outFiles": []
+        }
+    ]
+}

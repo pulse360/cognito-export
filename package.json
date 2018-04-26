@@ -1,0 +1,18 @@
+{
+  "name": "awscognito",
+  "description": "AWS Cognito CLI tool for exporting and importing users",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "tsc -p .",
+    "compile": "tsc -p .",
+    "lint": "tslint **/*.ts"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.226.1",
+    "meow": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/meow": "^4.0.1",
+    "@types/node": "^7.0.60"
+  }
+}
