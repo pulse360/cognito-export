@@ -122,27 +122,28 @@ function csv(users: any[], header: string[]) {
     const CUSTOM_ATTRIBUTES = header.filter(attribute => attribute.startsWith("custom:"));
     let result: string = COMMON_ATTRIBUTES.concat(GENERAL_ATTRIBUTES).concat(CUSTOM_ATTRIBUTES).join() + "\r\n";
     for (let user of users) {
-        let record: string = `${escape(user.Username)},${user.MFAOptions ? true : false},${Date.parse(user.UserLastModifiedDate)}`;
+        let record: string = `${user.Username},${user.MFAOptions ? true : false},${Date.parse(user.UserLastModifiedDate)}`;
         GENERAL_ATTRIBUTES.forEach(attribute => {
             let att = user.Attributes.find((item: { Name: string; Value: string }) => item.Name === attribute);
             record += ",";
-            record += escape(att && att.Value || (att === "email_verified" || att === "phone_number_verified") ? "false" : "");
+            record += att && att.Value ? att.Value : (attribute == "email_verified" || attribute == "phone_number_verified") ? "false" : "";
         });
         CUSTOM_ATTRIBUTES.forEach(attribute => {
             let att = user.Attributes.find((item: { Name: string; Value: string }) => item.Name === attribute);
             record += ",";
-            record += escape(att && att.Value || "");
+            record += att && att.Value || "";
         });
         result += `${record}\r\n`;
     };
     return result;
 }
 
+/*
 function escape(value: any) {
     value = value === null || value == undefined ? "" : "" + value;
     value = value.split("\"").join("\"\"");
     return value;
-}
+}*/
 
 async function getHeader(userpool: string, region: string) {
     const cognito = new CognitoIdentityServiceProvider({ region });
