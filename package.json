@@ -5,11 +5,13 @@
   "main": "./src/cli.ts", 
   "scripts": {
     "build": "tsc -p .",
+    "dev": "tsc -w",
     "compile": "tsc -p .",
-    "lint": "tslint **/*.ts"
+    "lint": "tslint **/*.ts",
+    "prepare": "npm run build"
   },
   "bin":{
-     "awscognito" : "./src/cli.ts"
+     "awscognito" : "lib/cli.js"
   },
   "dependencies": {
     "aws-sdk": "^2.226.1",
