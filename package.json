@@ -11,7 +11,7 @@
     "prepare": "npm run build"
   },
   "bin":{
-     "awscognito" : "build/src/cli.js"
+     "awscognito" : "build/cli.js"
   },
   "dependencies": {
     "aws-sdk": "^2.226.1",
