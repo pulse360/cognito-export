@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { CognitoIdentityServiceProvider } from 'aws-sdk';
 import * as meow from 'meow';
 import fs = require('fs');
