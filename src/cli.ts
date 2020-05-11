@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { CognitoIdentityServiceProvider } from 'aws-sdk';
+import * as AWS from 'aws-sdk';
 import * as meow from 'meow';
 import fs = require('fs');
 
@@ -40,7 +40,10 @@ async function main() {
 async function exportUsersCli(cli: meow.Result): Promise<number> {
     const userpool = cli.flags.userPoolId;
     const [region] = userpool.split("_");
-    const format = cli.flags.format.toLowerCase() || "json";
+    let format =  "json";
+    if( cli.flags.format ){
+        format = cli.flags.format.toLowerCase() || "json";
+    }
     if (!userpool) {
         console.error("[ERROR] Missing arguments: --user-pool-id is required!");
         cli.showHelp();
@@ -49,6 +52,12 @@ async function exportUsersCli(cli: meow.Result): Promise<number> {
         console.error("[ERROR] Invalid export format: only JSON and CSV are supported!");
         cli.showHelp();
     }
+
+    if( cli.flags.profile ){
+        var credentials = new AWS.SharedIniFileCredentials({ profile: cli.flags.profile });
+        AWS.config.credentials = credentials;
+    }
+    
     try {
         return exportUsers(userpool, region, format);
     } catch (err) {
@@ -80,11 +89,11 @@ function importUsersCli(cli: meow.Result) {
 /*== LOGIC FUNCTIONS ==*/
 
 async function exportUsers(userpool: string, region: string, format: string): Promise<number> {
-    const cognito = new CognitoIdentityServiceProvider({ region });
-    const params: CognitoIdentityServiceProvider.ListUsersRequest = { UserPoolId: userpool };
+    const cognito = new AWS.CognitoIdentityServiceProvider({ region });
+    const params: AWS.CognitoIdentityServiceProvider.ListUsersRequest = { UserPoolId: userpool };
     let filename: string = `${userpool}.${format}`
     let result: any[] = [];
-    let users: CognitoIdentityServiceProvider.ListUsersResponse;
+    let users: AWS.CognitoIdentityServiceProvider.ListUsersResponse;
 
     do {
         params.PaginationToken = users && users.PaginationToken;
@@ -96,6 +105,7 @@ async function exportUsers(userpool: string, region: string, format: string): Pr
         fs.writeFileSync(filename, JSON.stringify(result));
     } else if (format === "csv") {
         let header = await getHeader(userpool, region);
+        console.log("header: ", header);
         let text = csv(result, header);
         fs.writeFileSync(filename, text);
     }
@@ -110,21 +120,33 @@ function importUsers(userpool: string, region: string, filename: string) {
 /*== HELPER FUNCTIONS ==*/
 
 const COMMON_ATTRIBUTES = [
-    "cognito:username", "cognito:mfa_enabled", "updated_at"
+    "ChannelType","cognito:username", "cognito:mfa_enabled", "updated_at"
 ]
 
 const GENERAL_ATTRIBUTES = [
-    "name", "nickname", "given_name", "family_name", "middle_name",
-    "preferred_username", "gender", "birthdate", "address",
-    "profile", "picture", "website", "zoneinfo", "locale",
-    "email", "email_verified", "phone_number", "phone_number_verified"
+    "name","email", "email_verified", "phone_number", "phone_number_verified"
 ]
+
+function translateHeader( header: string[] ){
+    return header.map( h =>{
+        if( h == "ChannelType" ){
+            return h;
+        }
+        if( h == "cognito:username" ){
+            return "User.UserId";
+        }
+        if( h == "email" ){
+            return "Address";
+        }
+        return "User.UserAttributes." + h.replace(':', '_');
+    });
+}
 
 function csv(users: any[], header: string[]) {
     const CUSTOM_ATTRIBUTES = header.filter(attribute => attribute.startsWith("custom:"));
-    let result: string = COMMON_ATTRIBUTES.concat(GENERAL_ATTRIBUTES).concat(CUSTOM_ATTRIBUTES).join() + "\r\n";
+    let result: string = translateHeader(COMMON_ATTRIBUTES).concat(translateHeader(GENERAL_ATTRIBUTES)).concat(translateHeader(CUSTOM_ATTRIBUTES)).join() + "\r\n";
     for (let user of users) {
-        let record: string = `${user.Username},${user.MFAOptions ? true : false},${Date.parse(user.UserLastModifiedDate)}`;
+        let record: string = `EMAIL,${user.Username},${user.MFAOptions ? true : false},${Date.parse(user.UserLastModifiedDate)}`;
         GENERAL_ATTRIBUTES.forEach(attribute => {
             let att = user.Attributes.find((item: { Name: string; Value: string }) => item.Name === attribute);
             record += ",";
@@ -148,7 +170,7 @@ function escape(value: any) {
 }*/
 
 async function getHeader(userpool: string, region: string) {
-    const cognito = new CognitoIdentityServiceProvider({ region });
+    const cognito = new AWS.CognitoIdentityServiceProvider({ region });
     let result = await cognito.getCSVHeader({ UserPoolId: userpool }).promise()
     return result.CSVHeader;
 }
