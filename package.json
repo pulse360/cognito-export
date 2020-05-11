@@ -2,16 +2,17 @@
   "name": "awscognito",
   "description": "AWS Cognito CLI tool for exporting and importing users",
   "version": "0.0.1",
-  "main": "./src/cli.ts", 
+  "main": "./src/cli.ts",
   "scripts": {
+    "awscognito":"node build/cli.js export-users",
     "build": "tsc -p .",
     "dev": "tsc -w",
     "compile": "tsc -p .",
     "lint": "tslint **/*.ts",
     "prepare": "npm run build"
   },
-  "bin":{
-     "awscognito" : "build/cli.js"
+  "bin": {
+    "awscognito": "build/cli.js"
   },
   "dependencies": {
     "aws-sdk": "^2.226.1",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@types/meow": "^4.0.1",
-    "@types/node": "^7.0.60"
+    "@types/node": "^7.0.60",
+    "typescript": "^3.8.3"
   }
 }
