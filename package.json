@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "main": "./src/cli.ts",
   "scripts": {
-    "awscognito":"node build/cli.js export-users",
+    "awscognito": "node build/cli.js export-users",
     "build": "tsc -p .",
     "dev": "tsc -w",
     "compile": "tsc -p .",
@@ -15,7 +15,9 @@
     "awscognito": "build/cli.js"
   },
   "dependencies": {
+    "@types/lodash.omit": "^4.5.6",
     "aws-sdk": "^2.226.1",
+    "lodash.omit": "^4.5.0",
     "meow": "^4.0.0"
   },
   "devDependencies": {
