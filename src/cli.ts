@@ -33,6 +33,7 @@ async function main() {
         let code = await method(cli);
         return code;
     } catch (err) {
+        console.log(err)
         return -1;
     }
 }
@@ -138,21 +139,33 @@ function importUsers(userpool: string, region: string, filename: string) {
 /*== HELPER FUNCTIONS ==*/
 
 const COMMON_ATTRIBUTES = [
-    "ChannelType",
-    "cognito:username",
-    "cognito:mfa_enabled",
     "updated_at",
+    "cognito:mfa_enabled",
+    "cognito:username",
 ];
 
 const GENERAL_ATTRIBUTES = [
     "name",
+    "given_name",
+    "family_name",
+    "middle_name",
+    "nickname",
+    "preferred_username",
+    "profile",
+    "picture",
+    "website",
     "email",
     "email_verified",
+    "gender",
+    "birthdate",
+    "zoneinfo",
+    "locale",
     "phone_number",
     "phone_number_verified",
+    "address",
 ];
 
-function translateHeader(header: string[]) {
+/* function translateHeader(header: string[]) {
     return header.map((h) => {
         if (h == "ChannelType") {
             return h;
@@ -165,27 +178,44 @@ function translateHeader(header: string[]) {
         }
         return "User.UserAttributes." + h.replace(":", "_");
     });
-}
+} */
+
+const skipUsersEmails = ["jamie@pulse360.com", "anand@pulse360.com"];
 
 function csv(users: any[], header: string[]) {
-    const CUSTOM_ATTRIBUTES = header.filter((attribute) =>
+    /* const CUSTOM_ATTRIBUTES = header.filter((attribute) =>
         attribute.startsWith("custom:")
-    );
+    ); */
     let result: string =
-        translateHeader(COMMON_ATTRIBUTES)
-            .concat(translateHeader(GENERAL_ATTRIBUTES))
-            .concat(translateHeader(CUSTOM_ATTRIBUTES))
+        GENERAL_ATTRIBUTES.concat(COMMON_ATTRIBUTES)
+            /* .concat(translateHeader(CUSTOM_ATTRIBUTES)) */
             .join() + "\r\n";
+
     for (let user of users) {
-        let record: string = `EMAIL,${user.Username},${
-            user.MFAOptions ? true : false
-        },${Date.parse(user.UserLastModifiedDate)}`;
-        GENERAL_ATTRIBUTES.forEach((attribute) => {
+        const userEmail: { Name: string; Value: string } = user.Attributes.find(
+            (item: { Name: string; Value: string }) => item.Name === "email"
+        );
+
+        if (userEmail && skipUsersEmails.includes(userEmail.Value)) {
+            continue;
+        }
+
+        let record: string = "";
+        /* CUSTOM_ATTRIBUTES.forEach((attribute) => {
             let att = user.Attributes.find(
                 (item: { Name: string; Value: string }) =>
                     item.Name === attribute
             );
             record += ",";
+            record += (att && att.Value) || "";
+        }); */
+
+        GENERAL_ATTRIBUTES.forEach((attribute, index) => {
+            let att = user.Attributes.find(
+                (item: { Name: string; Value: string }) =>
+                    item.Name === attribute
+            );
+            record += index === 0 ? "" : ",";
             record +=
                 att && att.Value
                     ? att.Value
@@ -194,14 +224,9 @@ function csv(users: any[], header: string[]) {
                     ? "false"
                     : "";
         });
-        CUSTOM_ATTRIBUTES.forEach((attribute) => {
-            let att = user.Attributes.find(
-                (item: { Name: string; Value: string }) =>
-                    item.Name === attribute
-            );
-            record += ",";
-            record += (att && att.Value) || "";
-        });
+        record += `,${Date.parse(user.UserLastModifiedDate)},${
+            user.MFAOptions ? true : false
+        },${userEmail.Value}`;
         result += `${record}\r\n`;
     }
     return result;
