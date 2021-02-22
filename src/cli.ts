@@ -180,7 +180,7 @@ const GENERAL_ATTRIBUTES = [
     });
 } */
 
-const skipUsersEmails = ["jamie@pulse360.com", "anand@pulse360.com"];
+const skipUsersEmails: string[] = [];
 
 function csv(users: any[], header: string[]) {
     /* const CUSTOM_ATTRIBUTES = header.filter((attribute) =>
